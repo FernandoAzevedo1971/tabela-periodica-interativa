@@ -4,9 +4,9 @@
   "description": "Tabela Periódica completa com informações detalhadas de todos os 118 elementos",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
-  "orientation": "landscape",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "any",
   "icons": [
     {
       "src": "icon-192.png",

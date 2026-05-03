@@ -66,9 +66,9 @@
       -webkit-text-fill-color: transparent;
     }
     #search-input {
-      background: #1e293b;
-      border: 1px solid var(--border);
-      color: var(--text);
+      background: #334155;
+      border: 1px solid #475569;
+      color: #f1f5f9;
       padding: 6px 12px;
       border-radius: 8px;
       font-family: 'Exo 2', sans-serif;
@@ -77,6 +77,7 @@
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
+    #search-input::placeholder { color: #94a3b8; }
     #search-input:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 2px var(--glow);
@@ -116,6 +117,14 @@
     #table-wrapper {
       min-width: 680px;
     }
+    #scroll-hint {
+      display: none;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--muted);
+      padding: 4px 0 6px;
+      letter-spacing: 0.5px;
+    }
     .pt-grid {
       display: grid;
       grid-template-columns: repeat(18, 1fr);
@@ -125,8 +134,8 @@
     /* ELEMENT CELL */
     .el {
       aspect-ratio: 1;
-      border-radius: 4px;
-      border: 1px solid transparent;
+      border-radius: 5px;
+      border: 1.5px solid transparent;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -137,11 +146,12 @@
       background: #e2e8f0;
       overflow: hidden;
       min-width: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
     .el:hover {
-      transform: scale(1.18);
+      transform: scale(1.2);
       z-index: 10;
-      box-shadow: 0 0 14px var(--c, #38bdf8);
+      box-shadow: 0 4px 16px var(--c, #0284c7), 0 0 0 2px var(--c, #0284c7);
     }
     .el.dimmed { opacity: 0.18; }
     .el.highlighted { opacity: 1; }
@@ -324,23 +334,18 @@
     }
 
     @media (orientation: portrait) {
-      main {
-        padding: 4px;
-      }
-      #legend {
-        gap: 4px;
-        padding: 4px;
-      }
-      .legend-item {
-        font-size: 0.6rem;
-      }
-      .el-sym { font-size: 0.8rem; }
-      .el-name { font-size: 0.22rem; }
-      .el-num  { font-size: 0.38rem; }
+      main { padding: 4px; }
+      #legend { gap: 4px; padding: 4px; }
+      .legend-item { font-size: 0.58rem; }
+      .el-sym  { font-size: 0.78rem; }
+      .el-name { font-size: 0.2rem; }
+      .el-num  { font-size: 0.36rem; }
+      #scroll-hint { display: block; }
     }
 
     @media (orientation: landscape) {
       .el-sym { font-size: 1rem; }
+      #scroll-hint { display: none; }
     }
   </style>
 </head>
@@ -353,6 +358,7 @@
 
 <main>
   <div id="legend"></div>
+  <p id="scroll-hint">‹ deslize para ver a tabela completa ›</p>
   <div id="table-wrapper">
     <div class="pt-grid" id="pt-grid"></div>
   </div>

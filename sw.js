@@ -1,4 +1,4 @@
-const CACHE = 'periodica-v3';
+const CACHE = 'periodica-v4';
 const ASSETS = [
   './',
   './index.html',

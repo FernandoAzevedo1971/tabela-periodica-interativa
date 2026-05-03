@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="theme-color" content="#f1f5f9">
+  <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Tabela Periódica">
@@ -15,7 +15,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
 
     :root {
-      --bg: #f1f5f9;
+      --bg: #ffffff;
       --panel: #ffffff;
       --border: #cbd5e1;
       --text: #1e293b;
@@ -572,8 +572,8 @@ function makeEl(el) {
   div.dataset.cat = cat;
   div.dataset.z = z;
   div.style.cssText = `
-    background: ${color}18;
-    border-color: ${color}55;
+    background: ${color};
+    border-color: ${color}bb;
     --c: ${color};
   `;
   div.innerHTML = `
@@ -640,11 +640,11 @@ for (let r = 1; r <= TOTAL_ROWS; r++) {
       // Special labels for lanthanide/actinide placeholders
       if (r === 6 && c === 3) {
         div.className = 'el series-label';
-        div.style.cssText = `grid-row:6;grid-column:3;background:${CATEGORIES.lanthanide.color}22;border:1px dashed ${CATEGORIES.lanthanide.color}55;border-radius:4px;`;
+        div.style.cssText = `grid-row:6;grid-column:3;background:${CATEGORIES.lanthanide.color}55;border:1px solid ${CATEGORIES.lanthanide.color};border-radius:4px;`;
         div.innerHTML = `<span style="font-size:0.3rem;color:${CATEGORIES.lanthanide.color};text-align:center;padding:2px;">57–71</span>`;
       } else if (r === 7 && c === 3) {
         div.className = 'el series-label';
-        div.style.cssText = `grid-row:7;grid-column:3;background:${CATEGORIES.actinide.color}22;border:1px dashed ${CATEGORIES.actinide.color}55;border-radius:4px;`;
+        div.style.cssText = `grid-row:7;grid-column:3;background:${CATEGORIES.actinide.color}55;border:1px solid ${CATEGORIES.actinide.color};border-radius:4px;`;
         div.innerHTML = `<span style="font-size:0.3rem;color:${CATEGORIES.actinide.color};text-align:center;padding:2px;">89–103</span>`;
       }
     }

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0e1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tabela Periódica">
+  <meta name="description" content="Tabela Periódica Interativa">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Tabela Periódica</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
+
+    :root {
+      --bg: #0a0e1a;
+      --panel: #111827;
+      --border: #1e2d47;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #38bdf8;
+      --glow: rgba(56,189,248,0.25);
+
+      --alkali: #ef4444;
+      --alkaline: #f97316;
+      --transition: #eab308;
+      --post: #84cc16;
+      --metalloid: #22c55e;
+      --nonmetal: #06b6d4;
+      --halogen: #8b5cf6;
+      --noble: #ec4899;
+      --lanthanide: #f472b6;
+      --actinide: #fb923c;
+      --unknown: #475569;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Exo 2', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    #search-input {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.8rem;
+      width: 140px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--glow);
+    }
+
+    /* MAIN LAYOUT */
+    main {
+      padding: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* LEGEND */
+    #legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.65rem;
+      cursor: pointer;
+      opacity: 1;
+      transition: opacity 0.2s;
+    }
+    .legend-item.dimmed { opacity: 0.3; }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 2px;
+    }
+
+    /* TABLE */
+    #table-wrapper {
+      min-width: 680px;
+    }
+    .pt-grid {
+      display: grid;
+      grid-template-columns: repeat(18, 1fr);
+      gap: 3px;
+    }
+
+    /* ELEMENT CELL */
+    .el {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+      background: #111827;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .el::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.15;
+      border-radius: 4px;
+    }
+    .el:hover {
+      transform: scale(1.18);
+      z-index: 10;
+      box-shadow: 0 0 14px var(--c, #38bdf8);
+    }
+    .el.dimmed { opacity: 0.12; }
+    .el.highlighted { opacity: 1; }
+    .el.selected {
+      outline: 2px solid white;
+      z-index: 20;
+      transform: scale(1.2);
+    }
+
+    .el-num {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.45rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1;
+    }
+    .el-sym {
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1;
+      color: #fff;
+    }
+    .el-name {
+      font-size: 0.3rem;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+      line-height: 1.2;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding: 0 1px;
+    }
+
+    /* SPACER */
+    .spacer { background: transparent !important; border: none !important; cursor: default !important; }
+    .spacer:hover { transform: none !important; box-shadow: none !important; }
+
+    /* SERIES LABELS */
+    .series-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.35rem;
+      color: var(--muted);
+      text-align: center;
+      cursor: default;
+    }
+
+    /* MODAL */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 400px;
+      width: 100%;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    #modal-close {
+      position: absolute;
+      top: 12px; right: 16px;
+      background: none; border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #modal-close:hover { color: var(--text); }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .modal-symbol {
+      width: 64px; height: 64px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .modal-symbol .num { font-size: 0.7rem; font-family: 'Share Tech Mono', monospace; color: rgba(255,255,255,0.6); }
+    .modal-symbol .sym { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1; }
+    .modal-title h2 { font-size: 1.3rem; font-weight: 800; }
+    .modal-title p { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .modal-prop {
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .modal-prop label {
+      display: block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .modal-prop span {
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .modal-desc {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #94a3b8;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    /* INSTALL BANNER */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px 20px;
+      z-index: 300;
+      box-shadow: 0 0 20px var(--glow);
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    #install-banner.show { display: flex; }
+    #install-btn {
+      background: var(--accent);
+      color: #0a0e1a;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-weight: 700;
+      font-family: 'Exo 2', sans-serif;
+      cursor: pointer;
+    }
+    #dismiss-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 480px) {
+      .el-name { font-size: 0.25rem; }
+      .el-sym { font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚗ Periódica</h1>
+  <input type="search" id="search-input" placeholder="Buscar elemento…">
+</header>
+
+<main>
+  <div id="legend"></div>
+  <div id="table-wrapper">
+    <div class="pt-grid" id="pt-grid"></div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <button id="modal-close">×</button>
+    <div class="modal-header">
+      <div class="modal-symbol" id="m-symbol">
+        <span class="num" id="m-num"></span>
+        <span class="sym" id="m-sym"></span>
+      </div>
+      <div class="modal-title">
+        <h2 id="m-name"></h2>
+        <p id="m-cat"></p>
+      </div>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-prop"><label>Massa Atômica</label><span id="m-mass"></span></div>
+      <div class="modal-prop"><label>Config. Elétrons</label><span id="m-config"></span></div>
+      <div class="modal-prop"><label>Ponto de Fusão</label><span id="m-melt"></span></div>
+      <div class="modal-prop"><label>Ponto de Ebulição</label><span id="m-boil"></span></div>
+      <div class="modal-prop"><label>Eletronegatividade</label><span id="m-en"></span></div>
+      <div class="modal-prop"><label>Densidade</label><span id="m-density"></span></div>
+      <div class="modal-prop"><label>Período</label><span id="m-period"></span></div>
+      <div class="modal-prop"><label>Grupo</label><span id="m-group"></span></div>
+    </div>
+    <p class="modal-desc" id="m-desc"></p>
+  </div>
+</div>
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <span>📲 Instalar como app</span>
+  <button id="install-btn">Instalar</button>
+  <button id="dismiss-btn">✕</button>
+</div>
+
+<script>
+// ============================================================
+// ELEMENT DATA
+// ============================================================
+const CATEGORIES = {
+  'alkali':      { label: 'Metal Alcalino',       color: '#ef4444' },
+  'alkaline':    { label: 'Metal Alcalino-Terroso',color: '#f97316' },
+  'transition':  { label: 'Metal de Transição',   color: '#eab308' },
+  'post':        { label: 'Metal Pós-Trans.',      color: '#84cc16' },
+  'metalloid':   { label: 'Metaloide',             color: '#22c55e' },
+  'nonmetal':    { label: 'Não-Metal',             color: '#06b6d4' },
+  'halogen':     { label: 'Halogênio',             color: '#8b5cf6' },
+  'noble':       { label: 'Gás Nobre',             color: '#ec4899' },
+  'lanthanide':  { label: 'Lantanídeo',            color: '#f472b6' },
+  'actinide':    { label: 'Actinídeo',             color: '#fb923c' },
+  'unknown':     { label: 'Desconhecido',          color: '#475569' },
+};
+
+const ELEMENTS = [
+  // Z, sym, name, cat, row, col, mass, config, melt, boil, en, density, period, group, desc
+  [1,'H','Hidrogênio','nonmetal',1,1,1.008,'1s¹','-259°C','-253°C',2.20,'0.09 g/L',1,1,'O elemento mais abundante do universo. Base de estrelas e moléculas orgânicas.'],
+  [2,'He','Hélio','noble',1,18,4.003,'1s²','-272°C','-269°C','—','0.16 g/L',1,18,'Segundo elemento mais abundante no universo. Usado em balões e criogenia.'],
+  [3,'Li','Lítio','alkali',2,1,6.941,'[He] 2s¹','181°C','1342°C',0.98,'0.53 g/cm³',2,1,'Metal leve, usado em baterias recarregáveis e no tratamento do transtorno bipolar.'],
+  [4,'Be','Berílio','alkaline',2,2,9.012,'[He] 2s²','1287°C','2470°C',1.57,'1.85 g/cm³',2,2,'Metal leve e rígido. Usado em ligas aeroespaciais e janelas de raios X.'],
+  [5,'B','Boro','metalloid',2,13,10.81,'[He] 2s² 2p¹','2075°C','4000°C',2.04,'2.34 g/cm³',2,13,'Metaloide usado em vidros especiais, cerâmicas e como moderador em reatores nucleares.'],
+  [6,'C','Carbono','nonmetal',2,14,12.011,'[He] 2s² 2p²','3550°C','4827°C',2.55,'2.27 g/cm³',2,14,'Base de toda a química orgânica. Grafite, diamante e fulerenos são formas alotrópicas.'],
+  [7,'N','Nitrogênio','nonmetal',2,15,14.007,'[He] 2s² 2p³','-210°C','-196°C',3.04,'1.25 g/L',2,15,'Compõe 78% da atmosfera. Essencial em proteínas e ácidos nucleicos.'],
+  [8,'O','Oxigênio','nonmetal',2,16,15.999,'[He] 2s² 2p⁴','-218°C','-183°C',3.44,'1.43 g/L',2,16,'Essencial para respiração aeróbica. Segundo gás mais abundante na atmosfera.'],
+  [9,'F','Flúor','halogen',2,17,18.998,'[He] 2s² 2p⁵','-220°C','-188°C',3.98,'1.70 g/L',2,17,'Elemento mais eletronegativo. Usado em pasta de dentes e compostos farmacêuticos.'],
+  [10,'Ne','Neônio','noble',2,18,20.180,'[He] 2s² 2p⁶','-249°C','-246°C','—','0.90 g/L',2,18,'Gás nobre usado em letreiros luminosos e lasers.'],
+  [11,'Na','Sódio','alkali',3,1,22.990,'[Ne] 3s¹','98°C','883°C',0.93,'0.97 g/cm³',3,1,'Metal mole altamente reativo. Íon essencial no equilíbrio eletrolítico humano.'],
+  [12,'Mg','Magnésio','alkaline',3,2,24.305,'[Ne] 3s²','650°C','1090°C',1.31,'1.74 g/cm³',3,2,'Cofator de mais de 300 enzimas. Usado em ligas leves e pirotecnia.'],
+  [13,'Al','Alumínio','post',3,13,26.982,'[Ne] 3s² 3p¹','660°C','2519°C',1.61,'2.70 g/cm³',3,13,'Metal mais abundante da crosta terrestre. Leve, resistente à corrosão.'],
+  [14,'Si','Silício','metalloid',3,14,28.086,'[Ne] 3s² 3p²','1414°C','3265°C',1.90,'2.33 g/cm³',3,14,'Base dos semicondutores modernos. Segundo elemento mais abundante na crosta terrestre.'],
+  [15,'P','Fósforo','nonmetal',3,15,30.974,'[Ne] 3s² 3p³','44°C','280°C',2.19,'1.82 g/cm³',3,15,'Essencial no DNA, RNA e ATP. Componente de fertilizantes.'],
+  [16,'S','Enxofre','nonmetal',3,16,32.065,'[Ne] 3s² 3p⁴','113°C','445°C',2.58,'2.07 g/cm³',3,16,'Essencial em aminoácidos. Usado na fabricação de ácido sulfúrico e pólvora.'],
+  [17,'Cl','Cloro','halogen',3,17,35.453,'[Ne] 3s² 3p⁵','-101°C','-34°C',3.16,'3.21 g/L',3,17,'Gás oxidante. Usado no tratamento de água e como desinfetante.'],
+  [18,'Ar','Argônio','noble',3,18,39.948,'[Ne] 3s² 3p⁶','-189°C','-186°C','—','1.78 g/L',3,18,'Gás nobre mais abundante na atmosfera. Usado em soldagem e iluminação.'],
+  [19,'K','Potássio','alkali',4,1,39.098,'[Ar] 4s¹','64°C','759°C',0.82,'0.86 g/cm³',4,1,'Íon fundamental no potencial de ação neuronal. Abundante em frutas e vegetais.'],
+  [20,'Ca','Cálcio','alkaline',4,2,40.078,'[Ar] 4s²','842°C','1484°C',1.00,'1.55 g/cm³',4,2,'Principal mineral dos ossos e dentes. Segundo mensageiro celular.'],
+  [21,'Sc','Escândio','transition',4,3,44.956,'[Ar] 3d¹ 4s²','1541°C','2836°C',1.36,'2.99 g/cm³',4,3,'Metal de transição raro. Usado em ligas de alumínio para aplicações aeroespaciais.'],
+  [22,'Ti','Titânio','transition',4,4,47.867,'[Ar] 3d² 4s²','1668°C','3287°C',1.54,'4.51 g/cm³',4,4,'Metal leve e biocompatível. Amplamente usado em implantes médicos e aeronáutica.'],
+  [23,'V','Vanádio','transition',4,5,50.942,'[Ar] 3d³ 4s²','1910°C','3407°C',1.63,'6.11 g/cm³',4,5,'Usado em ligas de aço de alta resistência. Tem papel em metabolismo de glicose.'],
+  [24,'Cr','Cromo','transition',4,6,51.996,'[Ar] 3d⁵ 4s¹','1907°C','2671°C',1.66,'7.19 g/cm³',4,6,'Dá resistência à corrosão no aço inoxidável. Usado em galvanoplastia.'],
+  [25,'Mn','Manganês','transition',4,7,54.938,'[Ar] 3d⁵ 4s²','1246°C','2061°C',1.55,'7.44 g/cm³',4,7,'Cofator enzimático importante. Usado na produção de aço.'],
+  [26,'Fe','Ferro','transition',4,8,55.845,'[Ar] 3d⁶ 4s²','1538°C','2861°C',1.83,'7.87 g/cm³',4,8,'Metal mais usado na história humana. Essencial na hemoglobina e transporte de O₂.'],
+  [27,'Co','Cobalto','transition',4,9,58.933,'[Ar] 3d⁷ 4s²','1495°C','2927°C',1.88,'8.90 g/cm³',4,9,'Componente da vitamina B12. Usado em ligas magnéticas e baterias.'],
+  [28,'Ni','Níquel','transition',4,10,58.693,'[Ar] 3d⁸ 4s²','1455°C','2913°C',1.91,'8.91 g/cm³',4,10,'Metal resistente à corrosão. Usado em moedas, baterias e ligas.'],
+  [29,'Cu','Cobre','transition',4,11,63.546,'[Ar] 3d¹⁰ 4s¹','1085°C','2562°C',1.90,'8.96 g/cm³',4,11,'Excelente condutor elétrico. Essencial em fiação, eletrônicos e encanamentos.'],
+  [30,'Zn','Zinco','transition',4,12,65.38,'[Ar] 3d¹⁰ 4s²','420°C','907°C',1.65,'7.13 g/cm³',4,12,'Essencial para o sistema imune e crescimento. Usado em galvanização.'],
+  [31,'Ga','Gálio','post',4,13,69.723,'[Ar] 3d¹⁰ 4s² 4p¹','30°C','2229°C',1.81,'5.91 g/cm³',4,13,'Funde próximo à temperatura ambiente. Usado em semicondutores e LEDs.'],
+  [32,'Ge','Germânio','metalloid',4,14,72.63,'[Ar] 3d¹⁰ 4s² 4p²','938°C','2833°C',2.01,'5.32 g/cm³',4,14,'Metaloide semicondutor. Usado em fibras ópticas e detectores de infravermelho.'],
+  [33,'As','Arsênio','metalloid',4,15,74.922,'[Ar] 3d¹⁰ 4s² 4p³','817°C','614°C',2.18,'5.73 g/cm³',4,15,'Metaloide tóxico com usos históricos. Usado em semicondutores (GaAs).'],
+  [34,'Se','Selênio','nonmetal',4,16,78.971,'[Ar] 3d¹⁰ 4s² 4p⁴','221°C','685°C',2.55,'4.81 g/cm³',4,16,'Oligoelemento essencial com função antioxidante. Componente da selenoproteínas.'],
+  [35,'Br','Bromo','halogen',4,17,79.904,'[Ar] 3d¹⁰ 4s² 4p⁵','-7°C','59°C',2.96,'3.12 g/cm³',4,17,'Único não-metal líquido à temperatura ambiente. Usado em retardantes de chama.'],
+  [36,'Kr','Criptônio','noble',4,18,83.798,'[Ar] 3d¹⁰ 4s² 4p⁶','-157°C','-153°C','—','3.75 g/L',4,18,'Gás nobre usado em lasers de alta potência e iluminação fluorescente.'],
+  [37,'Rb','Rubídio','alkali',5,1,85.468,'[Kr] 5s¹','39°C','688°C',0.82,'1.53 g/cm³',5,1,'Metal alcalino muito reativo. Usado em relógios atômicos e espectroscopia.'],
+  [38,'Sr','Estrôncio','alkaline',5,2,87.62,'[Kr] 5s²','777°C','1382°C',0.95,'2.64 g/cm³',5,2,'Similar ao cálcio biologicamente. Ranelato de estrôncio foi usado no tratamento de osteoporose.'],
+  [39,'Y','Ítrio','transition',5,3,88.906,'[Kr] 4d¹ 5s²','1522°C','3337°C',1.22,'4.47 g/cm³',5,3,'Usado em ligas especiais, LEDs brancos e supercondutores de alta temperatura.'],
+  [40,'Zr','Zircônio','transition',5,4,91.224,'[Kr] 4d² 5s²','1855°C','4409°C',1.33,'6.51 g/cm³',5,4,'Alta resistência à corrosão. Usado em reatores nucleares e implantes odontológicos.'],
+  [41,'Nb','Nióbio','transition',5,5,92.906,'[Kr] 4d⁴ 5s¹','2477°C','4744°C',1.6,'8.57 g/cm³',5,5,'Brasil é maior produtor mundial. Essencial em aços especiais para construção.'],
+  [42,'Mo','Molibdênio','transition',5,6,95.95,'[Kr] 4d⁵ 5s¹','2623°C','4639°C',2.16,'10.28 g/cm³',5,6,'Cofator enzimático importante. Fortalece ligas de aço e molibdênio é vital em plantas.'],
+  [43,'Tc','Tecnécio','transition',5,7,98,'[Kr] 4d⁵ 5s²','2157°C','4265°C',1.9,'11.5 g/cm³',5,7,'Primeiro elemento artificial. O ⁹⁹ᵐTc é amplamente usado em medicina nuclear (cintilografia).'],
+  [44,'Ru','Rutênio','transition',5,8,101.07,'[Kr] 4d⁷ 5s¹','2334°C','4150°C',2.2,'12.37 g/cm³',5,8,'Metal do grupo da platina. Usado em eletrodos, catálise e células solares.'],
+  [45,'Rh','Ródio','transition',5,9,102.906,'[Kr] 4d⁸ 5s¹','1964°C','3695°C',2.28,'12.41 g/cm³',5,9,'Um dos metais mais raros e caros. Fundamental em catalisadores de veículos.'],
+  [46,'Pd','Paládio','transition',5,10,106.42,'[Kr] 4d¹⁰','1555°C','2963°C',2.20,'12.02 g/cm³',5,10,'Absorve até 900 vezes seu volume em hidrogênio. Catalisadores automotivos.'],
+  [47,'Ag','Prata','transition',5,11,107.868,'[Kr] 4d¹⁰ 5s¹','962°C','2162°C',1.93,'10.49 g/cm³',5,11,'Melhor condutor elétrico e térmico. Propriedades antimicrobianas amplamente usadas.'],
+  [48,'Cd','Cádmio','transition',5,12,112.414,'[Kr] 4d¹⁰ 5s²','321°C','767°C',1.69,'8.65 g/cm³',5,12,'Metal tóxico. Usado em baterias Ni-Cd e como pigmento amarelo.'],
+  [49,'In','Índio','post',5,13,114.818,'[Kr] 4d¹⁰ 5s² 5p¹','157°C','2072°C',1.78,'7.31 g/cm³',5,13,'Metal mole usado em telas touch (ITO) e soldas especiais.'],
+  [50,'Sn','Estanho','post',5,14,118.710,'[Kr] 4d¹⁰ 5s² 5p²','232°C','2602°C',1.96,'7.29 g/cm³',5,14,'Usado desde a Idade do Bronze. Componente de solda e revestimento anticorrosão.'],
+  [51,'Sb','Antimônio','metalloid',5,15,121.760,'[Kr] 4d¹⁰ 5s² 5p³','631°C','1587°C',2.05,'6.68 g/cm³',5,15,'Metaloide usado em retardantes de chama e ligas para baterias de chumbo-ácido.'],
+  [52,'Te','Telúrio','metalloid',5,16,127.60,'[Kr] 4d¹⁰ 5s² 5p⁴','450°C','988°C',2.1,'6.24 g/cm³',5,16,'Metaloide semicondutor. Usado em células solares de telureto de cádmio.'],
+  [53,'I','Iodo','halogen',5,17,126.904,'[Kr] 4d¹⁰ 5s² 5p⁵','114°C','184°C',2.66,'4.93 g/cm³',5,17,'Essencial para hormônios tireoidianos. Usado como contraste e antisséptico.'],
+  [54,'Xe','Xenônio','noble',5,18,131.293,'[Kr] 4d¹⁰ 5s² 5p⁶','-112°C','-108°C','—','5.90 g/L',5,18,'Gás nobre usado em propulsores iônicos, lâmpadas e anestesia experimental.'],
+  [55,'Cs','Césio','alkali',6,1,132.905,'[Xe] 6s¹','28°C','671°C',0.79,'1.93 g/cm³',6,1,'Elemento com menor eletronegatividade. Base dos relógios atômicos de máxima precisão.'],
+  [56,'Ba','Bário','alkaline',6,2,137.327,'[Xe] 6s²','727°C','1897°C',0.89,'3.51 g/cm³',6,2,'Sulfato de bário é opaco a raios X, usado como contraste gastrointestinal.'],
+  [57,'La','Lantânio','lanthanide',8,3,138.905,'[Xe] 5d¹ 6s²','920°C','3464°C',1.10,'6.15 g/cm³',6,3,'Primeiro lantanídeo. Usado em ligas especiais e eletrodos de carbono.'],
+  [58,'Ce','Cério','lanthanide',8,4,140.116,'[Xe] 4f¹ 5d¹ 6s²','795°C','3443°C',1.12,'6.77 g/cm³',6,4,'Lantanídeo mais abundante. Usado em catalisadores automotivos e compostos de polimento.'],
+  [59,'Pr','Praseodímio','lanthanide',8,5,140.908,'[Xe] 4f³ 6s²','935°C','3130°C',1.13,'6.77 g/cm³',6,5,'Usado em ímãs permanentes de alta potência e em óculos de soldagem.'],
+  [60,'Nd','Neodímio','lanthanide',8,6,144.242,'[Xe] 4f⁴ 6s²','1024°C','3074°C',1.14,'7.01 g/cm³',6,6,'Ímãs Nd-Fe-B são os mais fortes existentes. Essenciais em motores elétricos e turbinas eólicas.'],
+  [61,'Pm','Promécio','lanthanide',8,7,145,'[Xe] 4f⁵ 6s²','1042°C','3000°C',1.13,'7.26 g/cm³',6,7,'Único lantanídeo radioativo sem isótopos estáveis. Usado em algumas baterias nucleares.'],
+  [62,'Sm','Samário','lanthanide',8,8,150.36,'[Xe] 4f⁶ 6s²','1072°C','1794°C',1.17,'7.52 g/cm³',6,8,'Ímãs Sm-Co resistem a altas temperaturas. Usado em câncer de próstata (¹⁵³Sm).'],
+  [63,'Eu','Európio','lanthanide',8,9,151.964,'[Xe] 4f⁷ 6s²','826°C','1529°C',1.2,'5.24 g/cm³',6,9,'Usado como fósforo em telas de TV e monitores para produzir cores vermelha e azul.'],
+  [64,'Gd','Gadolínio','lanthanide',8,10,157.25,'[Xe] 4f⁷ 5d¹ 6s²','1312°C','3250°C',1.20,'7.90 g/cm³',6,10,'Agente de contraste fundamental em ressonância magnética (RM). Alta susceptibilidade magnética.'],
+  [65,'Tb','Térbio','lanthanide',8,11,158.925,'[Xe] 4f⁹ 6s²','1356°C','3230°C',1.20,'8.23 g/cm³',6,11,'Usado em telas de alta definição e dispositivos de armazenamento magneto-óptico.'],
+  [66,'Dy','Disprósio','lanthanide',8,12,162.500,'[Xe] 4f¹⁰ 6s²','1407°C','2562°C',1.22,'8.55 g/cm³',6,12,'Essencial em ímãs de neodímio para veículos elétricos. Alta resistência ao calor.'],
+  [67,'Ho','Hólmio','lanthanide',8,13,164.930,'[Xe] 4f¹¹ 6s²','1461°C','2720°C',1.23,'8.80 g/cm³',6,13,'Possui o maior momento magnético entre os elementos. Laser Ho:YAG usado em urologia.'],
+  [68,'Er','Érbio','lanthanide',8,14,167.259,'[Xe] 4f¹² 6s²','1529°C','2868°C',1.24,'9.07 g/cm³',6,14,'Amplificador EDFA é essencial nas comunicações por fibra óptica de longa distância.'],
+  [69,'Tm','Túlio','lanthanide',8,15,168.934,'[Xe] 4f¹³ 6s²','1545°C','1950°C',1.25,'9.32 g/cm³',6,15,'Lantanídeo raro. ¹⁶⁹Tm é usado como fonte portátil de raios X em medicina.'],
+  [70,'Yb','Itérbio','lanthanide',8,16,173.045,'[Xe] 4f¹⁴ 6s²','824°C','1196°C',1.1,'6.90 g/cm³',6,16,'Usado em lasers de fibra de alta potência e relógios ópticos atômicos.'],
+  [71,'Lu','Lutécio','lanthanide',8,17,174.967,'[Xe] 4f¹⁴ 5d¹ 6s²','1652°C','3402°C',1.27,'9.84 g/cm³',6,17,'Mais denso dos lantanídeos. ¹⁷⁷Lu-DOTATATE aprovado para tumores neuroendócrinos.'],
+  [72,'Hf','Háfnio','transition',6,4,178.49,'[Xe] 4f¹⁴ 5d² 6s²','2233°C','4603°C',1.3,'13.31 g/cm³',6,4,'Excepcional absorvedor de nêutrons. Usado em barras de controle de reatores nucleares.'],
+  [73,'Ta','Tântalo','transition',6,5,180.948,'[Xe] 4f¹⁴ 5d³ 6s²','2996°C','5458°C',1.5,'16.65 g/cm³',6,5,'Biocompatível e resistente à corrosão. Usado em capacitores eletrônicos e implantes cirúrgicos.'],
+  [74,'W','Tungstênio','transition',6,6,183.84,'[Xe] 4f¹⁴ 5d⁴ 6s²','3422°C','5555°C',2.36,'19.25 g/cm³',6,6,'Maior ponto de fusão de todos os metais. Filamentos de lâmpadas e blindagem de raios X.'],
+  [75,'Re','Rênio','transition',6,7,186.207,'[Xe] 4f¹⁴ 5d⁵ 6s²','3186°C','5596°C',1.9,'21.02 g/cm³',6,7,'Segundo maior ponto de fusão. ¹⁸⁸Re usado em radioterapia de tumores ósseos.'],
+  [76,'Os','Ósmio','transition',6,8,190.23,'[Xe] 4f¹⁴ 5d⁶ 6s²','3033°C','5012°C',2.2,'22.59 g/cm³',6,8,'Metal mais denso do planeta. Usado em ligas para canetas e instrumentos de precisão.'],
+  [77,'Ir','Irídio','transition',6,9,192.217,'[Xe] 4f¹⁴ 5d⁷ 6s²','2446°C','4428°C',2.20,'22.56 g/cm³',6,9,'Metal mais resistente à corrosão. ¹⁹²Ir usado em braquiterapia para tumores.'],
+  [78,'Pt','Platina','transition',6,10,195.084,'[Xe] 4f¹⁴ 5d⁹ 6s¹','1768°C','3825°C',2.28,'21.45 g/cm³',6,10,'Catalisador excelente. Cisplatina e derivados são quimioterápicos fundamentais em oncologia.'],
+  [79,'Au','Ouro','transition',6,11,196.967,'[Xe] 4f¹⁴ 5d¹⁰ 6s¹','1064°C','2856°C',2.54,'19.30 g/cm³',6,11,'Nobre, maleável e biocompatível. Nanopartículas de ouro promissoras em diagnóstico e terapia.'],
+  [80,'Hg','Mercúrio','transition',6,12,200.592,'[Xe] 4f¹⁴ 5d¹⁰ 6s²','-39°C','357°C',2.00,'13.53 g/cm³',6,12,'Único metal líquido à temperatura ambiente. Altamente tóxico. Usado em termômetros e amalgamas.'],
+  [81,'Tl','Tálio','post',6,13,204.38,'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹','304°C','1473°C',1.62,'11.85 g/cm³',6,13,'²⁰¹Tl usado em cintilografia miocárdica. Altamente tóxico por ingestão.'],
+  [82,'Pb','Chumbo','post',6,14,207.2,'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²','327°C','1749°C',2.33,'11.34 g/cm³',6,14,'Metal denso, blindagem contra radiação. Tóxico em exposição crônica. Baterias de chumbo-ácido.'],
+  [83,'Bi','Bismuto','post',6,15,208.980,'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³','271°C','1564°C',2.02,'9.75 g/cm³',6,15,'Metal não-tóxico de baixa radioatividade. Subsalicilato de bismuto trata distúrbios gástricos.'],
+  [84,'Po','Polônio','metalloid',6,16,209,'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴','254°C','962°C',2.0,'9.20 g/cm³',6,16,'Elemento radioativo descoberto por Marie Curie. ²¹⁰Po emissor alfa extremamente tóxico.'],
+  [85,'At','Ástato','halogen',6,17,210,'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵','302°C','337°C',2.2,'—',6,17,'Halogênio radioativo raríssimo. ²¹¹At explorado em radioterapia alfa de precisão (TAT).'],
+  [86,'Rn','Radônio','noble',6,18,222,'[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶','-71°C','-62°C','—','9.73 g/L',6,18,'Gás nobre radioativo. Principal causa de câncer de pulmão por fatores ambientais após tabagismo.'],
+  [87,'Fr','Frâncio','alkali',7,1,223,'[Rn] 7s¹','27°C','677°C',0.7,'—',7,1,'Metal alcalino mais instável. Quase não existe na natureza. Usado apenas em pesquisa básica.'],
+  [88,'Ra','Rádio','alkaline',7,2,226,'[Rn] 7s²','700°C','1737°C',0.9,'5.50 g/cm³',7,2,'Elemento radioativo descoberto pelos Curie. Histórico uso em radioterapia, hoje substituído.'],
+  [89,'Ac','Actínio','actinide',9,3,227,'[Rn] 6d¹ 7s²','1051°C','3198°C',1.1,'10.07 g/cm³',7,3,'Primeiro actinídeo. ²²⁵Ac promissor em terapia com alfa-partículas para câncer metastático.'],
+  [90,'Th','Tório','actinide',9,4,232.038,'[Rn] 6d² 7s²','1750°C','4820°C',1.3,'11.72 g/cm³',7,4,'Actinídeo radiativo. Potencial combustível nuclear mais seguro que o urânio em reatores de sais fundidos.'],
+  [91,'Pa','Protactínio','actinide',9,5,231.036,'[Rn] 5f² 6d¹ 7s²','1568°C','4000°C',1.5,'15.37 g/cm³',7,5,'Actinídeo radioativo precursor do urânio-233 em reatores de tório. Extremamente raro.'],
+  [92,'U','Urânio','actinide',9,6,238.029,'[Rn] 5f³ 6d¹ 7s²','1135°C','4131°C',1.38,'19.05 g/cm³',7,6,'Principal combustível nuclear. Isótopo ²³⁵U é fissível. Alta densidade também usada em blindagem.'],
+  [93,'Np','Netúnio','actinide',9,7,237,'[Rn] 5f⁴ 6d¹ 7s²','640°C','3902°C',1.36,'20.45 g/cm³',7,7,'Primeiro transurânico. Produzido em reatores nucleares. Precursor do ²³⁸Pu para geradores RTG.'],
+  [94,'Pu','Plutônio','actinide',9,8,244,'[Rn] 5f⁶ 7s²','639°C','3232°C',1.28,'19.84 g/cm³',7,8,'Elemento fissível para armas e reatores. ²³⁸Pu em RTGs alimenta sondas espaciais como a Voyager.'],
+  [95,'Am','Amerício','actinide',9,9,243,'[Rn] 5f⁷ 7s²','1176°C','2607°C',1.3,'13.67 g/cm³',7,9,'²⁴¹Am é a fonte radioativa em detectores de fumaça iônicos domésticos.'],
+  [96,'Cm','Cúrio','actinide',9,10,247,'[Rn] 5f⁷ 6d¹ 7s²','1340°C','3110°C',1.3,'13.51 g/cm³',7,10,'Actinídeo sintetizado. Homenagem a Marie e Pierre Curie. Usado em fontes de energia espacial.'],
+  [97,'Bk','Berquélio','actinide',9,11,247,'[Rn] 5f⁹ 7s²','1050°C','—',1.3,'14.79 g/cm³',7,11,'Actinídeo sintético obtido em aceleradores. Homenagem à Universidade de Berkeley.'],
+  [98,'Cf','Califórnio','actinide',9,12,251,'[Rn] 5f¹⁰ 7s²','900°C','—',1.3,'15.10 g/cm³',7,12,'²⁵²Cf é forte emissor de nêutrons. Usado para inicializar reatores nucleares e em pesquisa de câncer.'],
+  [99,'Es','Einstênio','actinide',9,13,252,'[Rn] 5f¹¹ 7s²','860°C','—',1.3,'8.84 g/cm³',7,13,'Actinídeo sintético em homenagem a Albert Einstein. Produzido em mínimas quantidades.'],
+  [100,'Fm','Férmio','actinide',9,14,257,'[Rn] 5f¹² 7s²','1527°C','—',1.3,'—',7,14,'Em homenagem a Enrico Fermi. Elemento mais pesado que pode ser produzido em reatores.'],
+  [101,'Md','Mendelévio','actinide',9,15,258,'[Rn] 5f¹³ 7s²','827°C','—',1.3,'—',7,15,'Homenagem a Dmitri Mendeleev, criador da tabela periódica. Sintetizado em 1955.'],
+  [102,'No','Nobélio','actinide',9,16,259,'[Rn] 5f¹⁴ 7s²','827°C','—',1.3,'—',7,16,'Actinídeo sintético homenageando Alfred Nobel. Meia-vida muito curta.'],
+  [103,'Lr','Laurêncio','actinide',9,17,262,'[Rn] 5f¹⁴ 7s² 7p¹','1627°C','—',1.3,'—',7,17,'Último actinídeo. Homenagem a Ernest Lawrence, inventor do cíclotron.'],
+  [104,'Rf','Rutherfórdio','transition',7,4,267,'[Rn] 5f¹⁴ 6d² 7s²','—','—',1.3,'—',7,4,'Transactinídeo em homenagem a Ernest Rutherford. Altíssima radioatividade, meia-vida de segundos.'],
+  [105,'Db','Dúbnio','transition',7,5,268,'[Rn] 5f¹⁴ 6d³ 7s²','—','—',1.3,'—',7,5,'Sintetizado independentemente em Dubna (Rússia) e Berkeley (EUA) na Guerra Fria.'],
+  [106,'Sg','Seabórgio','transition',7,6,271,'[Rn] 5f¹⁴ 6d⁴ 7s²','—','—',1.3,'—',7,6,'Homenagem ao físico Glenn T. Seaborg, único cientista com elemento nomeado em vida.'],
+  [107,'Bh','Bório','transition',7,7,272,'[Rn] 5f¹⁴ 6d⁵ 7s²','—','—',1.3,'—',7,7,'Homenagem a Niels Bohr. Superpenúltimo elemento com comportamento químico investigado.'],
+  [108,'Hs','Hássio','transition',7,8,277,'[Rn] 5f¹⁴ 6d⁶ 7s²','—','—',1.3,'—',7,8,'Nome derivado do estado de Hesse, Alemanha. Síntese confirmada em 1984.'],
+  [109,'Mt','Meitnério','unknown',7,9,278,'[Rn] 5f¹⁴ 6d⁷ 7s²','—','—','—','—',7,9,'Homenagem a Lise Meitner, física pioneira na descoberta da fissão nuclear.'],
+  [110,'Ds','Darmstádtio','unknown',7,10,281,'[Rn] 5f¹⁴ 6d⁸ 7s²','—','—','—','—',7,10,'Sintetizado no GSI em Darmstadt, Alemanha, em 1994. Extremamente instável.'],
+  [111,'Rg','Roentgênio','unknown',7,11,282,'[Rn] 5f¹⁴ 6d⁹ 7s²','—','—','—','—',7,11,'Homenagem a Wilhelm Röntgen, descobridor dos raios X. Sintetizado em 1994.'],
+  [112,'Cn','Copernício','transition',7,12,285,'[Rn] 5f¹⁴ 6d¹⁰ 7s²','—','—','—','—',7,12,'Homenagem a Nicolau Copérnico. Pode ser líquido à temperatura ambiente por efeitos relativísticos.'],
+  [113,'Nh','Nihônio','unknown',7,13,286,'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹','—','—','—','—',7,13,'Primeiro elemento sintetizado na Ásia (Japão). Nome deriva de "Nihon" (Japão em japonês).'],
+  [114,'Fl','Fleróvio','unknown',7,14,289,'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²','—','—','—','—',7,14,'Homenagem ao laboratório Flerov em Dubna. Efeitos relativísticos sugerem comportamento similar ao gás nobre.'],
+  [115,'Mc','Moscóvio','unknown',7,15,290,'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³','—','—','—','—',7,15,'Nome homenageia Moscou e a Oblast de Moscou. Sintetizado em 2003.'],
+  [116,'Lv','Livermório','unknown',7,16,293,'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴','—','—','—','—',7,16,'Homenagem ao Lawrence Livermore National Laboratory, EUA. Sintetizado em 2000.'],
+  [117,'Ts','Tenessino','unknown',7,17,294,'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵','—','—','—','—',7,17,'Homenagem ao estado do Tennessee. Confirmado em 2010. Quarto elemento mais pesado conhecido.'],
+  [118,'Og','Oganessônio','unknown',7,18,294,'[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶','—','—','—','—',7,18,'Elemento mais pesado confirmado. Homenagem ao físico Yuri Oganessian, pioneiro em elementos superpesados.'],
+];
+// Z=0 col=3, lanthanide row=6 placeholder
+// lanthanides row=8, actinides row=9
+
+// ============================================================
+// BUILD LEGEND
+// ============================================================
+const legend = document.getElementById('legend');
+let activeFilter = null;
+
+Object.entries(CATEGORIES).forEach(([key, val]) => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  item.dataset.cat = key;
+  item.innerHTML = `<div class="legend-dot" style="background:${val.color}"></div><span>${val.label}</span>`;
+  item.addEventListener('click', () => {
+    if (activeFilter === key) {
+      activeFilter = null;
+      applyFilter(null);
+    } else {
+      activeFilter = key;
+      applyFilter(key);
+    }
+  });
+  legend.appendChild(item);
+});
+
+function applyFilter(cat) {
+  document.querySelectorAll('.legend-item').forEach(li => {
+    li.classList.toggle('dimmed', cat !== null && li.dataset.cat !== cat);
+  });
+  document.querySelectorAll('.el:not(.spacer)').forEach(el => {
+    if (cat === null) {
+      el.classList.remove('dimmed', 'highlighted');
+    } else {
+      const match = el.dataset.cat === cat;
+      el.classList.toggle('dimmed', !match);
+      el.classList.toggle('highlighted', match);
+    }
+  });
+}
+
+// ============================================================
+// BUILD GRID
+// ============================================================
+const grid = document.getElementById('pt-grid');
+
+// Map elements to grid positions
+// row 1-7 = periods 1-7 (grid rows 1-7)
+// row 8 = lanthanides (gap row), row 9 = actinides
+// We place lanthanide/actinide rows at grid row 9 and 10 with extra spacer row
+
+function makeEl(el) {
+  const [z, sym, name, cat, row, col, mass, config, melt, boil, en, density, period, group, desc] = el;
+  const color = CATEGORIES[cat]?.color || '#475569';
+  const div = document.createElement('div');
+  div.className = 'el';
+  div.dataset.cat = cat;
+  div.dataset.z = z;
+  div.style.cssText = `
+    background: ${color}18;
+    border-color: ${color}55;
+    --c: ${color};
+  `;
+  div.innerHTML = `
+    <span class="el-num">${z}</span>
+    <span class="el-sym">${sym}</span>
+    <span class="el-name">${name}</span>
+  `;
+  div.addEventListener('click', () => openModal(el));
+  return div;
+}
+
+function makeSpacerEl(gridRow, gridCol, span = 1) {
+  const div = document.createElement('div');
+  div.className = 'el spacer';
+  div.style.gridRow = gridRow;
+  div.style.gridColumn = span > 1 ? `${gridCol} / span ${span}` : gridCol;
+  return div;
+}
+
+// Place elements by grid position
+// Main table rows 1-7
+// After row 6 we add an empty row (row 8) then lanthanides (row 9) and actinides (row 10)
+const rowMap = {1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:9,9:10};
+
+// Create a grid position map
+const cells = {};
+ELEMENTS.forEach(el => {
+  const [z, sym, name, cat, row, col] = el;
+  if (row <= 7) cells[`${row},${col}`] = el;
+  else cells[`${row},${col}`] = el; // lanthanides/actinides at their rows
+});
+
+// Build 10 rows × 18 cols
+const TOTAL_ROWS = 10;
+const TOTAL_COLS = 18;
+
+for (let r = 1; r <= TOTAL_ROWS; r++) {
+  for (let c = 1; c <= TOTAL_COLS; c++) {
+    let el = null;
+    if (r <= 7) {
+      el = cells[`${r},${c}`];
+    } else if (r === 8) {
+      // empty separator row — skip, handled below
+    } else if (r === 9) {
+      // lanthanides: stored as row=8, col=3..17
+      const lanthCol = c - 2; // lanthanides go col 3-17 in grid
+      if (c >= 3 && c <= 17) el = cells[`8,${c}`];
+    } else if (r === 10) {
+      if (c >= 3 && c <= 17) el = cells[`9,${c}`];
+    }
+
+    const div = document.createElement('div');
+    if (el) {
+      const [z, sym, name, cat,,,,mass, config, melt, boil, en, density, period, group, desc] = el;
+      const color = CATEGORIES[cat]?.color || '#475569';
+      div.className = 'el';
+      div.dataset.cat = cat;
+      div.style.cssText = `background:${color}18;border-color:${color}55;--c:${color};grid-row:${r};grid-column:${c};`;
+      div.innerHTML = `<span class="el-num">${z}</span><span class="el-sym">${sym}</span><span class="el-name">${name}</span>`;
+      div.addEventListener('click', () => openModal(el));
+    } else {
+      div.className = 'el spacer';
+      div.style.cssText = `grid-row:${r};grid-column:${c};background:transparent;border:none;`;
+      // Special labels for lanthanide/actinide placeholders
+      if (r === 6 && c === 3) {
+        div.className = 'el series-label';
+        div.style.cssText = `grid-row:6;grid-column:3;background:${CATEGORIES.lanthanide.color}22;border:1px dashed ${CATEGORIES.lanthanide.color}55;border-radius:4px;`;
+        div.innerHTML = `<span style="font-size:0.3rem;color:${CATEGORIES.lanthanide.color};text-align:center;padding:2px;">57–71</span>`;
+      } else if (r === 7 && c === 3) {
+        div.className = 'el series-label';
+        div.style.cssText = `grid-row:7;grid-column:3;background:${CATEGORIES.actinide.color}22;border:1px dashed ${CATEGORIES.actinide.color}55;border-radius:4px;`;
+        div.innerHTML = `<span style="font-size:0.3rem;color:${CATEGORIES.actinide.color};text-align:center;padding:2px;">89–103</span>`;
+      }
+    }
+    grid.appendChild(div);
+  }
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+const overlay = document.getElementById('modal-overlay');
+document.getElementById('modal-close').addEventListener('click', () => overlay.classList.remove('open'));
+overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+function openModal(el) {
+  const [z, sym, name, cat, row, col, mass, config, melt, boil, en, density, period, group, desc] = el;
+  const color = CATEGORIES[cat]?.color || '#475569';
+  document.getElementById('m-num').textContent = z;
+  document.getElementById('m-sym').textContent = sym;
+  document.getElementById('m-name').textContent = name;
+  document.getElementById('m-cat').textContent = CATEGORIES[cat]?.label || cat;
+  document.getElementById('m-mass').textContent = mass;
+  document.getElementById('m-config').textContent = config;
+  document.getElementById('m-melt').textContent = melt;
+  document.getElementById('m-boil').textContent = boil;
+  document.getElementById('m-en').textContent = en;
+  document.getElementById('m-density').textContent = density;
+  document.getElementById('m-period').textContent = period;
+  document.getElementById('m-group').textContent = group;
+  document.getElementById('m-desc').textContent = desc;
+  const msym = document.getElementById('m-symbol');
+  msym.style.background = `${color}33`;
+  msym.style.border = `1px solid ${color}77`;
+  overlay.classList.add('open');
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+document.getElementById('search-input').addEventListener('input', function() {
+  const q = this.value.trim().toLowerCase();
+  if (!q) {
+    document.querySelectorAll('.el:not(.spacer)').forEach(el => el.classList.remove('dimmed','highlighted'));
+    document.querySelectorAll('.legend-item').forEach(li => li.classList.remove('dimmed'));
+    activeFilter = null;
+    return;
+  }
+  document.querySelectorAll('.el:not(.spacer)').forEach(div => {
+    const z = div.dataset.z;
+    const el = ELEMENTS.find(e => String(e[0]) === z);
+    if (!el) { div.classList.add('dimmed'); return; }
+    const [num, sym, name, cat] = el;
+    const match = sym.toLowerCase().includes(q) || name.toLowerCase().includes(q) || String(num) === q || CATEGORIES[cat]?.label.toLowerCase().includes(q);
+    div.classList.toggle('dimmed', !match);
+    div.classList.toggle('highlighted', match);
+  });
+});
+
+// ============================================================
+// PWA INSTALL
+// ============================================================
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('install-banner').classList.remove('show');
+  }
+});
+document.getElementById('dismiss-btn').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

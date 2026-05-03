@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -38,12 +38,14 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+    }
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Exo 2', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
     }
 
     /* HEADER */
@@ -183,7 +185,13 @@
     }
 
     /* SPACER */
-    .spacer { background: transparent !important; border: none !important; cursor: default !important; }
+    .spacer {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      cursor: default !important;
+      pointer-events: none;
+    }
     .spacer:hover { transform: none !important; box-shadow: none !important; }
 
     /* SERIES LABELS */
@@ -765,6 +773,20 @@ document.getElementById('install-btn').addEventListener('click', async () => {
 document.getElementById('dismiss-btn').addEventListener('click', () => {
   document.getElementById('install-banner').classList.remove('show');
 });
+
+// ============================================================
+// ORIENTATION — force reflow on rotate
+// ============================================================
+const onOrientationChange = () => {
+  document.documentElement.style.display = 'none';
+  // eslint-disable-next-line no-unused-expressions
+  document.documentElement.offsetHeight;
+  document.documentElement.style.display = '';
+};
+window.addEventListener('orientationchange', onOrientationChange);
+if (screen.orientation) {
+  screen.orientation.addEventListener('change', onOrientationChange);
+}
 
 // ============================================================
 // SERVICE WORKER

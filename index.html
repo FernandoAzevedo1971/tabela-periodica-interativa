@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#ffffff">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Tabela Periódica">
   <meta name="description" content="Tabela Periódica Interativa">
   <link rel="manifest" href="manifest.json">
@@ -154,18 +154,15 @@
     .el-num {
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.45rem;
-      color: rgba(255,255,255,0.5);
       line-height: 1;
     }
     .el-sym {
       font-size: 1rem;
       font-weight: 800;
       line-height: 1;
-      color: #fff;
     }
     .el-name {
       font-size: 0.3rem;
-      color: rgba(255,255,255,0.6);
       text-align: center;
       line-height: 1.2;
       max-width: 100%;
@@ -324,6 +321,26 @@
     @media (max-width: 480px) {
       .el-name { font-size: 0.25rem; }
       .el-sym { font-size: 0.85rem; }
+    }
+
+    @media (orientation: portrait) {
+      main {
+        padding: 4px;
+      }
+      #legend {
+        gap: 4px;
+        padding: 4px;
+      }
+      .legend-item {
+        font-size: 0.6rem;
+      }
+      .el-sym { font-size: 0.8rem; }
+      .el-name { font-size: 0.22rem; }
+      .el-num  { font-size: 0.38rem; }
+    }
+
+    @media (orientation: landscape) {
+      .el-sym { font-size: 1rem; }
     }
   </style>
 </head>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="theme-color" content="#0a0e1a">
+  <meta name="theme-color" content="#f1f5f9">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Tabela Periódica">
@@ -15,13 +15,13 @@
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap');
 
     :root {
-      --bg: #0a0e1a;
-      --panel: #111827;
-      --border: #1e2d47;
-      --text: #e2e8f0;
+      --bg: #f1f5f9;
+      --panel: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
       --muted: #64748b;
-      --accent: #38bdf8;
-      --glow: rgba(56,189,248,0.25);
+      --accent: #0284c7;
+      --glow: rgba(2,132,199,0.2);
 
       --alkali: #ef4444;
       --alkaline: #f97316;
@@ -134,23 +134,16 @@
       cursor: pointer;
       position: relative;
       transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
-      background: #111827;
+      background: #e2e8f0;
       overflow: hidden;
       min-width: 0;
-    }
-    .el::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0.15;
-      border-radius: 4px;
     }
     .el:hover {
       transform: scale(1.18);
       z-index: 10;
       box-shadow: 0 0 14px var(--c, #38bdf8);
     }
-    .el.dimmed { opacity: 0.12; }
+    .el.dimmed { opacity: 0.18; }
     .el.highlighted { opacity: 1; }
     .el.selected {
       outline: 2px solid white;
@@ -211,14 +204,14 @@
     }
     #modal-overlay.open { display: flex; }
     #modal {
-      background: linear-gradient(135deg, #0f172a, #1e293b);
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 16px;
       max-width: 400px;
       width: 100%;
       padding: 24px;
       position: relative;
-      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
       animation: modalIn 0.2s ease;
     }
     @keyframes modalIn {
@@ -263,7 +256,7 @@
       margin-bottom: 16px;
     }
     .modal-prop {
-      background: rgba(255,255,255,0.04);
+      background: #f1f5f9;
       border-radius: 8px;
       padding: 10px;
     }
@@ -284,7 +277,7 @@
     .modal-desc {
       font-size: 0.8rem;
       line-height: 1.6;
-      color: #94a3b8;
+      color: var(--muted);
       border-top: 1px solid var(--border);
       padding-top: 14px;
     }
@@ -296,7 +289,7 @@
       bottom: 16px;
       left: 50%;
       transform: translateX(-50%);
-      background: #1e293b;
+      background: #ffffff;
       border: 1px solid var(--accent);
       border-radius: 12px;
       padding: 12px 20px;
@@ -310,7 +303,7 @@
     #install-banner.show { display: flex; }
     #install-btn {
       background: var(--accent);
-      color: #0a0e1a;
+      color: #ffffff;
       border: none;
       border-radius: 8px;
       padding: 6px 14px;
@@ -638,7 +631,7 @@ for (let r = 1; r <= TOTAL_ROWS; r++) {
       const color = CATEGORIES[cat]?.color || '#475569';
       div.className = 'el';
       div.dataset.cat = cat;
-      div.style.cssText = `background:${color}18;border-color:${color}55;--c:${color};grid-row:${r};grid-column:${c};`;
+      div.style.cssText = `background:${color};border-color:${color}bb;--c:${color};grid-row:${r};grid-column:${c};`;
       div.innerHTML = `<span class="el-num">${z}</span><span class="el-sym">${sym}</span><span class="el-name">${name}</span>`;
       div.addEventListener('click', () => openModal(el));
     } else {
